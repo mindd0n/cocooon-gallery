@@ -796,20 +796,6 @@ const ContentDisplay = ({ buttonId, onClose }) => {
         </div>
         )}
       </div>
-      
-      {/* 비디오 팝업들 */}
-      {showVideoA && (
-        <VideoPopup
-          videoSrc="/assets/deploy_media/L.mp4"
-          onClose={() => setShowVideoA(false)}
-        />
-      )}
-      {showVideoB && (
-        <VideoPopup
-          videoSrc="/assets/deploy_media/M.mp4"
-          onClose={() => setShowVideoB(false)}
-        />
-      )}
     </>
   );
 };
