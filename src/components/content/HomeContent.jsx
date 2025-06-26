@@ -9,18 +9,18 @@ const HomeContent = () => {
     icon_q: 4,
   });
   const imageDataRef = useRef({});
-  const iconRefs = useRef({
-    icon_o: null,
-    icon_p: null,
-    icon_q: null,
-  });
+  const iconRefs = {
+    icon_o: useRef(null),
+    icon_p: useRef(null),
+    icon_q: useRef(null),
+  };
 
   useEffect(() => {
-    Object.entries(iconRefs.current).forEach(([id, ref]) => {
-      if (ref) {
+    Object.entries(iconRefs).forEach(([id, ref]) => {
+      if (ref.current) {
         const img = new Image();
         img.crossOrigin = "Anonymous";
-        img.src = ref.src;
+        img.src = ref.current.src;
         img.onload = () => {
           const canvas = document.createElement('canvas');
           canvas.width = img.width;
@@ -68,10 +68,10 @@ const HomeContent = () => {
   };
 
   const handleWrapperClick = (e) => {
-    const sortedIcons = Object.keys(iconRefs.current).sort((a, b) => zIndexOrder[b] - zIndexOrder[a]);
+    const sortedIcons = Object.keys(iconRefs).sort((a, b) => zIndexOrder[b] - zIndexOrder[a]);
 
     for (const iconId of sortedIcons) {
-      const iconElement = iconRefs.current[iconId];
+      const iconElement = iconRefs[iconId].current;
       const rect = iconElement.getBoundingClientRect();
 
       if (
@@ -113,13 +113,13 @@ const HomeContent = () => {
       {/* 아이콘 버튼들 - 색이 있는 부분만 클릭 가능 */}
       <div className="icons-wrapper">
         <div className="icon-button icon-o" style={{ zIndex: zIndexOrder.icon_o }}>
-          <img ref={iconRefs.icon_o} src="/content/btn_h_home/icon_o.png" alt="Icon O" className="icon-image" />
+          <img ref={el => (iconRefs.icon_o.current = el)} src="/content/btn_h_home/icon_o.png" alt="Icon O" className="icon-image" />
         </div>
         <div className="icon-button icon-p" style={{ zIndex: zIndexOrder.icon_p }}>
-          <img ref={iconRefs.icon_p} src="/content/btn_h_home/icon_p.png" alt="Icon P" className="icon-image" />
+          <img ref={el => (iconRefs.icon_p.current = el)} src="/content/btn_h_home/icon_p.png" alt="Icon P" className="icon-image" />
         </div>
         <div className="icon-button icon-q" style={{ zIndex: zIndexOrder.icon_q }}>
-          <img ref={iconRefs.icon_q} src="/content/btn_h_home/icon_q.png" alt="Icon Q" className="icon-image" />
+          <img ref={el => (iconRefs.icon_q.current = el)} src="/content/btn_h_home/icon_q.png" alt="Icon Q" className="icon-image" />
         </div>
       </div>
 
