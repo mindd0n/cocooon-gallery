@@ -92,7 +92,7 @@ const VideoPopup = ({ videoSrc, onClose }) => {
           maxHeight: '800px',
         }}
         onClick={(e) => e.stopPropagation()}
-      >ㅈ
+      >
         <button
           onClick={onClose}
           style={{
@@ -194,14 +194,11 @@ const TreeContent = () => {
 const StarContent = () => {
   console.log('StarContent rendering');
   
-  const [galleryReady, setGalleryReady] = useState(false);
-
   useEffect(() => {
     // 컴포넌트가 마운트되면 바로 갤러리 준비
     setTimeout(() => {
       const section = document.getElementById("gallery");
       section?.scrollIntoView({ behavior: "smooth" });
-      setGalleryReady(true);
     }, 100);
   }, []);
 
@@ -274,7 +271,7 @@ const SunContent = () => {
       {/* 메인 이미지 */}
       <img 
         src="/content/btn_w_sun/k.PNG" 
-        alt="Sun Image"
+        alt="Sun"
         className="sun-main-image"
         style={{
           width: '120%',
@@ -299,6 +296,7 @@ const SunContent = () => {
         }}
       >
         <iframe 
+          title="Spotify Playlist"
           className="sun-playlist-iframe"
           style={{borderRadius: '12px'}} 
           src="https://open.spotify.com/embed/playlist/5jngExT7M9drt4yVZvrzQu?utm_source=generator" 
@@ -490,8 +488,6 @@ const CustomContent = ({ buttonId, onClose }) => {
 
 const ContentDisplay = ({ buttonId, onClose }) => {
   const [show, setShow] = useState(false);
-  const [showVideoA, setShowVideoA] = useState(false);
-  const [showVideoB, setShowVideoB] = useState(false);
   const contentInfo = ContentMap[buttonId];
 
   useEffect(() => {

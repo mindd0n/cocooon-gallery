@@ -38,7 +38,7 @@ const RightBottomControls = () => {
                 audioRef.current = null;
             }
         };
-    }, []);
+    }, [isMusicOn]);
 
     const toggleMusic = () => {
         if (audioRef.current) {

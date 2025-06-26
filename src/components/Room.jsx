@@ -4,7 +4,6 @@ import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { EffectComposer, Outline } from '@react-three/postprocessing';
 import './styles.css';
-import { useTexture } from '@react-three/drei';
 import { useButtonImageData } from '../hooks/useButtonImageData';
 import ContentDisplay from './ContentDisplay.jsx';
 import InteractiveGoButton from './InteractiveGoButton.jsx';
@@ -72,14 +71,6 @@ const roomHeight = 150;
 const roomWidth = 166.68; // 150 * 10 / 9
 const roomDepth = 166.68;
 const viewerHeight = 45;
-
-// Lighting configuration
-const ambientLightIntensity = 1.5;
-const ambientLightColor = "#fff0e6";
-const centralLightIntensity = 1.8;
-const centralLightColor = "#ffe4cc";
-const wallLightIntensity = 1.2;
-const wallLightColor = "#fff0e6";
 
 const minDistance = 0.5;
 const maxDistance = Math.max(roomWidth, roomHeight, roomDepth) / 2; // 큐브 밖으로 나가지 않도록 최대 거리 설정
