@@ -1,5 +1,4 @@
 [build]
-  base = "gallery"
   publish = "build"
   command = "npm run build"
 
