@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
-import InteractiveGoButton from './InteractiveGoButton.jsx';
 import PavilionContent from './content/PavilionContent.jsx';
 import HomeContent from './content/HomeContent.jsx';
 import DiaryContent from './content/DiaryContent.jsx';
@@ -642,14 +640,17 @@ const ContentDisplay = ({ buttonId, onClose }) => {
             {(() => {
               if (buttonId === 'btn_p_go') {
                 return (
-                  <Canvas style={{ width: '100%', height: '100%', background: 'transparent' }} camera={{ position: [0, 0, 15], fov: 50 }}>
-                    <ambientLight intensity={1.2} />
-                    <InteractiveGoButton 
-                      position={[0, 0, 0]} 
-                      onVideoAOpen={() => setShowVideoA(true)}
-                      onVideoBOpen={() => setShowVideoB(true)}
-                    />
-                  </Canvas>
+                  <div style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '18px'
+                  }}>
+                    Go 버튼 콘텐츠
+                  </div>
                 );
               } else if (buttonId === 'btn_p_pavilion') {
                 return <PavilionContent />;

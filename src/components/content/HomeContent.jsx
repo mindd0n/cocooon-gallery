@@ -9,25 +9,27 @@ const HomeContent = () => {
     icon_q: 4,
   });
   const imageDataRef = useRef({});
-  const iconRefs = {
-    icon_o: useRef(null),
-    icon_p: useRef(null),
-    icon_q: useRef(null),
-  };
+  const iconRefs = useRef({
+    icon_o: null,
+    icon_p: null,
+    icon_q: null,
+  });
 
   useEffect(() => {
-    Object.entries(iconRefs).forEach(([id, ref]) => {
-      const img = new Image();
-      img.crossOrigin = "Anonymous";
-      img.src = ref.current.src;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        imageDataRef.current[id] = ctx.getImageData(0, 0, img.width, img.height).data;
-      };
+    Object.entries(iconRefs.current).forEach(([id, ref]) => {
+      if (ref) {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = ref.src;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          imageDataRef.current[id] = ctx.getImageData(0, 0, img.width, img.height).data;
+        };
+      }
     });
   }, []);
 
@@ -66,10 +68,10 @@ const HomeContent = () => {
   };
 
   const handleWrapperClick = (e) => {
-    const sortedIcons = Object.keys(iconRefs).sort((a, b) => zIndexOrder[b] - zIndexOrder[a]);
+    const sortedIcons = Object.keys(iconRefs.current).sort((a, b) => zIndexOrder[b] - zIndexOrder[a]);
 
     for (const iconId of sortedIcons) {
-      const iconElement = iconRefs[iconId].current;
+      const iconElement = iconRefs.current[iconId];
       const rect = iconElement.getBoundingClientRect();
 
       if (
