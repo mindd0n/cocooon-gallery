@@ -1,1 +1,0 @@
-This is a placeholder for cocooon-gallery-final project files.

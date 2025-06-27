@@ -1,12 +1,69 @@
 import React, { useEffect, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
-import InteractiveGoButton from './InteractiveGoButton.jsx';
 import PavilionContent from './content/PavilionContent.jsx';
 import HomeContent from './content/HomeContent.jsx';
 import DiaryContent from './content/DiaryContent.jsx';
 
 // S3 기본 URL
 const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
+
+// S3 리소스 로딩 재시도 함수
+const loadS3Resource = async (url, retries = 3) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+      });
+      
+      if (response.ok) {
+        return response;
+      }
+    } catch (error) {
+      console.warn(`S3 리소스 로딩 실패 (시도 ${i + 1}/${retries}):`, url, error);
+      
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      }
+    }
+  }
+  
+  throw new Error(`S3 리소스 로딩 실패: ${url}`);
+};
+
+// 에러 상태를 표시하는 컴포넌트
+const ErrorDisplay = ({ message, onRetry }) => {
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100%',
+      padding: '20px',
+      textAlign: 'center',
+      color: '#666'
+    }}>
+      <div style={{ fontSize: '3rem', marginBottom: '20px' }}>⚠️</div>
+      <h3 style={{ marginBottom: '10px', color: '#333' }}>콘텐츠를 불러올 수 없습니다</h3>
+      <p style={{ marginBottom: '20px' }}>{message}</p>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#fff0e6',
+            border: '1px solid #ddd',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          다시 시도
+        </button>
+      )}
+    </div>
+  );
+};
 
 // 비디오 팝업 컴포넌트
 const VideoPopup = ({ videoSrc, onClose }) => {
@@ -35,7 +92,7 @@ const VideoPopup = ({ videoSrc, onClose }) => {
           maxHeight: '800px',
         }}
         onClick={(e) => e.stopPropagation()}
-      >ㅈ
+      >
         <button
           onClick={onClose}
           style={{
@@ -137,14 +194,11 @@ const TreeContent = () => {
 const StarContent = () => {
   console.log('StarContent rendering');
   
-  const [galleryReady, setGalleryReady] = useState(false);
-
   useEffect(() => {
     // 컴포넌트가 마운트되면 바로 갤러리 준비
     setTimeout(() => {
       const section = document.getElementById("gallery");
       section?.scrollIntoView({ behavior: "smooth" });
-      setGalleryReady(true);
     }, 100);
   }, []);
 
@@ -217,7 +271,7 @@ const SunContent = () => {
       {/* 메인 이미지 */}
       <img 
         src="/content/btn_w_sun/k.PNG" 
-        alt="Sun Image"
+        alt="Sun"
         className="sun-main-image"
         style={{
           width: '120%',
@@ -242,6 +296,7 @@ const SunContent = () => {
         }}
       >
         <iframe 
+          title="Spotify Playlist"
           className="sun-playlist-iframe"
           style={{borderRadius: '12px'}} 
           src="https://open.spotify.com/embed/playlist/5jngExT7M9drt4yVZvrzQu?utm_source=generator" 
@@ -282,47 +337,118 @@ const SunContent = () => {
 };
 
 const GenericContent = ({ type, src, onClose, objectFit = 'contain' }) => {
-  const baseStyle = {
-    width: '100%',
-    height: '100%',
-    border: 'none',
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const handleError = () => {
+    setError(true);
+    setLoading(false);
   };
+
+  const handleLoad = () => {
+    setLoading(false);
+  };
+
+  const handleRetry = () => {
+    setError(false);
+    setLoading(true);
+  };
+
+  if (error) {
+    return (
+      <ErrorDisplay 
+        message="미디어 파일을 불러올 수 없습니다. 네트워크 연결을 확인해주세요." 
+        onRetry={handleRetry}
+      />
+    );
+  }
 
   switch (type) {
     case 'video':
       return (
-        <video 
-          src={src} 
-          style={{ 
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain' 
-          }} 
-          controls loop playsInline 
-        />
-      );
-    case 'iframe':
-      return (
-        <iframe 
-          src={src} 
-          style={{ 
-            width: '100%',
-            height: '100%',
-            border: 'none',
-            minHeight: '500px',
-            backgroundColor: 'transparent',
-            zIndex: 15,
-            position: 'relative'
-          }} 
-          title="content" 
-        />
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+          {loading && (
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              color: '#666'
+            }}>
+              비디오 로딩 중...
+            </div>
+          )}
+          <video
+            src={src}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: objectFit,
+            }}
+            controls
+            loop
+            playsInline
+            onError={handleError}
+            onLoadedData={handleLoad}
+          />
+        </div>
       );
     case 'image':
       return (
-        <img src={src} style={{ ...baseStyle, objectFit: objectFit }} alt="content" />
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+          {loading && (
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              color: '#666'
+            }}>
+              이미지 로딩 중...
+            </div>
+          )}
+          <img
+            src={src}
+            alt="콘텐츠"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: objectFit,
+            }}
+            onError={handleError}
+            onLoad={handleLoad}
+          />
+        </div>
+      );
+    case 'iframe':
+      return (
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+          {loading && (
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              color: '#666'
+            }}>
+              페이지 로딩 중...
+            </div>
+          )}
+          <iframe
+            src={src}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+            }}
+            title="콘텐츠"
+            onError={handleError}
+            onLoad={handleLoad}
+          />
+        </div>
       );
     default:
-      return <div>Unsupported content type</div>;
+      return <div>지원하지 않는 콘텐츠 타입입니다.</div>;
   }
 };
 
@@ -362,8 +488,6 @@ const CustomContent = ({ buttonId, onClose }) => {
 
 const ContentDisplay = ({ buttonId, onClose }) => {
   const [show, setShow] = useState(false);
-  const [showVideoA, setShowVideoA] = useState(false);
-  const [showVideoB, setShowVideoB] = useState(false);
   const contentInfo = ContentMap[buttonId];
 
   useEffect(() => {
@@ -512,14 +636,17 @@ const ContentDisplay = ({ buttonId, onClose }) => {
             {(() => {
               if (buttonId === 'btn_p_go') {
                 return (
-                  <Canvas style={{ width: '100%', height: '100%', background: 'transparent' }} camera={{ position: [0, 0, 15], fov: 50 }}>
-                    <ambientLight intensity={1.2} />
-                    <InteractiveGoButton 
-                      position={[0, 0, 0]} 
-                      onVideoAOpen={() => setShowVideoA(true)}
-                      onVideoBOpen={() => setShowVideoB(true)}
-                    />
-                  </Canvas>
+                  <div style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '18px'
+                  }}>
+                    Go 버튼 콘텐츠
+                  </div>
                 );
               } else if (buttonId === 'btn_p_pavilion') {
                 return <PavilionContent />;
@@ -618,20 +745,6 @@ const ContentDisplay = ({ buttonId, onClose }) => {
         </div>
         )}
       </div>
-      
-      {/* 비디오 팝업들 */}
-      {showVideoA && (
-        <VideoPopup
-          videoSrc={`${S3_BASE_URL}/L.mp4`}
-          onClose={() => setShowVideoA(false)}
-        />
-      )}
-      {showVideoB && (
-        <VideoPopup
-          videoSrc={`${S3_BASE_URL}/M.mp4`}
-          onClose={() => setShowVideoB(false)}
-        />
-      )}
     </>
   );
 };

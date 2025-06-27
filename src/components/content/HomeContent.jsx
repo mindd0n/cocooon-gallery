@@ -17,17 +17,19 @@ const HomeContent = () => {
 
   useEffect(() => {
     Object.entries(iconRefs).forEach(([id, ref]) => {
-      const img = new Image();
-      img.crossOrigin = "Anonymous";
-      img.src = ref.current.src;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        imageDataRef.current[id] = ctx.getImageData(0, 0, img.width, img.height).data;
-      };
+      if (ref.current) {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = ref.current.src;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          imageDataRef.current[id] = ctx.getImageData(0, 0, img.width, img.height).data;
+        };
+      }
     });
   }, []);
 
@@ -111,13 +113,13 @@ const HomeContent = () => {
       {/* 아이콘 버튼들 - 색이 있는 부분만 클릭 가능 */}
       <div className="icons-wrapper">
         <div className="icon-button icon-o" style={{ zIndex: zIndexOrder.icon_o }}>
-          <img ref={iconRefs.icon_o} src="/content/btn_h_home/icon_o.png" alt="Icon O" className="icon-image" />
+          <img ref={el => (iconRefs.icon_o.current = el)} src="/content/btn_h_home/icon_o.png" alt="Icon O" className="icon-image" />
         </div>
         <div className="icon-button icon-p" style={{ zIndex: zIndexOrder.icon_p }}>
-          <img ref={iconRefs.icon_p} src="/content/btn_h_home/icon_p.png" alt="Icon P" className="icon-image" />
+          <img ref={el => (iconRefs.icon_p.current = el)} src="/content/btn_h_home/icon_p.png" alt="Icon P" className="icon-image" />
         </div>
         <div className="icon-button icon-q" style={{ zIndex: zIndexOrder.icon_q }}>
-          <img ref={iconRefs.icon_q} src="/content/btn_h_home/icon_q.png" alt="Icon Q" className="icon-image" />
+          <img ref={el => (iconRefs.icon_q.current = el)} src="/content/btn_h_home/icon_q.png" alt="Icon Q" className="icon-image" />
         </div>
       </div>
 

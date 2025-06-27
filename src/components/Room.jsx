@@ -12,6 +12,14 @@ import gsap from 'gsap';
 // S3 기본 URL
 const S3_BASE_URL = 'https://rest-exhibition.s3.ap-northeast-2.amazonaws.com/deploy_media';
 
+// S3 리소스 로딩 최적화를 위한 설정
+const S3_CONFIG = {
+  baseUrl: S3_BASE_URL,
+  retryAttempts: 3,
+  retryDelay: 1000,
+  timeout: 30000, // 30초 타임아웃
+};
+
 // 로컬 경로를 S3 경로로 변환하는 함수
 const convertToS3Path = (localPath) => {
   if (localPath.startsWith('http')) {
@@ -21,6 +29,31 @@ const convertToS3Path = (localPath) => {
   // 로컬 경로에서 파일명 추출
   const fileName = localPath.split('/').pop();
   return `${S3_BASE_URL}/${fileName}`;
+};
+
+// S3 리소스 로딩 재시도 함수
+const loadS3Resource = async (url, retries = S3_CONFIG.retryAttempts) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        timeout: S3_CONFIG.timeout,
+      });
+      
+      if (response.ok) {
+        return response;
+      }
+    } catch (error) {
+      console.warn(`S3 리소스 로딩 실패 (시도 ${i + 1}/${retries}):`, url, error);
+      
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, S3_CONFIG.retryDelay * (i + 1)));
+      }
+    }
+  }
+  
+  throw new Error(`S3 리소스 로딩 실패: ${url}`);
 };
 
 // 버튼 위치 계산 함수 (예시)
@@ -38,14 +71,6 @@ const roomHeight = 150;
 const roomWidth = 166.68; // 150 * 10 / 9
 const roomDepth = 166.68;
 const viewerHeight = 45;
-
-// Lighting configuration
-const ambientLightIntensity = 1.5;
-const ambientLightColor = "#fff0e6";
-const centralLightIntensity = 1.8;
-const centralLightColor = "#ffe4cc";
-const wallLightIntensity = 1.2;
-const wallLightColor = "#fff0e6";
 
 const minDistance = 0.5;
 const maxDistance = Math.max(roomWidth, roomHeight, roomDepth) / 2; // 큐브 밖으로 나가지 않도록 최대 거리 설정
